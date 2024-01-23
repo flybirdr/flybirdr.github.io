@@ -10,7 +10,37 @@
 **推荐使用Cleaner机制代替Finalizer机制。**
 
 ## 2、Finalizer原理
-![0c8d86a388b6da528466f4c7e5a17ed5.png](en-resource://database/580:1)
+```cpp
+art/runtime/mirror/class-alloc-inl.h
+
+template<bool kIsInstrumented, Class::AddFinalizer kAddFinalizer, bool kCheckAddFinalizer>
+inline ObjPtr<Object> Class::Alloc(Thread* self, gc::AllocatorType allocator_type) {
+  CheckObjectAlloc();
+  gc::Heap* heap = Runtime::Current()->GetHeap();
+  bool add_finalizer;
+  switch (kAddFinalizer) {
+    case Class::AddFinalizer::kUseClassTag:
+      add_finalizer = IsFinalizable();
+      break;
+    case Class::AddFinalizer::kNoAddFinalizer:
+      add_finalizer = false;
+      DCHECK_IMPLIES(kCheckAddFinalizer, !IsFinalizable());
+      break;
+  }
+  // Note that the `this` pointer may be invalidated after the allocation.
+  ObjPtr<Object> obj =
+      heap->AllocObjectWithAllocator<kIsInstrumented, /*kCheckLargeObject=*/ false>(
+          self, this, this->object_size_, allocator_type, VoidFunctor());
+  if (add_finalizer && LIKELY(obj != nullptr)) {
+    heap->AddFinalizerReference(self, &obj);
+    if (UNLIKELY(self->IsExceptionPending())) {
+      // Failed to allocate finalizer reference, it means that the whole allocation failed.
+      obj = nullptr;
+    }
+  }
+  return obj;
+}
+```
 
 Java中除了四大引用类型外，虚拟机内部还设计了FinalizerReference类型来支持Finalizer机制。
 
