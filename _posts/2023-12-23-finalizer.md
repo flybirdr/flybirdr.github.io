@@ -10,14 +10,44 @@
 **推荐使用Cleaner机制代替Finalizer机制。**
 
 ## 2、Finalizer原理
-![0c8d86a388b6da528466f4c7e5a17ed5.png](en-resource://database/580:1)
+```cpp
+art/runtime/mirror/class-alloc-inl.h
+
+template<bool kIsInstrumented, Class::AddFinalizer kAddFinalizer, bool kCheckAddFinalizer>
+inline ObjPtr<Object> Class::Alloc(Thread* self, gc::AllocatorType allocator_type) {
+  CheckObjectAlloc();
+  gc::Heap* heap = Runtime::Current()->GetHeap();
+  bool add_finalizer;
+  switch (kAddFinalizer) {
+    case Class::AddFinalizer::kUseClassTag:
+      add_finalizer = IsFinalizable();
+      break;
+    case Class::AddFinalizer::kNoAddFinalizer:
+      add_finalizer = false;
+      DCHECK_IMPLIES(kCheckAddFinalizer, !IsFinalizable());
+      break;
+  }
+  // Note that the `this` pointer may be invalidated after the allocation.
+  ObjPtr<Object> obj =
+      heap->AllocObjectWithAllocator<kIsInstrumented, /*kCheckLargeObject=*/ false>(
+          self, this, this->object_size_, allocator_type, VoidFunctor());
+  if (add_finalizer && LIKELY(obj != nullptr)) {
+    heap->AddFinalizerReference(self, &obj);
+    if (UNLIKELY(self->IsExceptionPending())) {
+      // Failed to allocate finalizer reference, it means that the whole allocation failed.
+      obj = nullptr;
+    }
+  }
+  return obj;
+}
+```
 
 Java中除了四大引用类型外，虚拟机内部还设计了FinalizerReference类型来支持Finalizer机制。
 
 虚拟机加载过程中会将重写了`Object#finalize()`方法的类型标记为`finalizeable`类型。每次创建`finalizeable`对象时，虚拟机会创建一个`FinalizerReference`引用对象，并将其暂存到一个全局链表中。
 
 heap.cc
-```
+```cpp
 void Heap::AddFinalizerReference(Thread* self, ObjPtr<mirror::Object>* object) {
     ScopedObjectAccess soa(self);
     ScopedLocalRef<jobject> arg(self->GetJniEnv(), soa.AddLocalReference<jobject>(*object));
@@ -29,7 +59,7 @@ void Heap::AddFinalizerReference(Thread* self, ObjPtr<mirror::Object>* object) {
 }
 ```
 FinalizerReference.java
-```
+```java
 // 关联的引用队列
 public static final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
 // 全局链表头指针（使用一个双向链表持有 FinalizerReference，否则没有强引用的话引用对象本身直接就被回收了）
