@@ -47,7 +47,7 @@ Java中除了四大引用类型外，虚拟机内部还设计了FinalizerReferen
 虚拟机加载过程中会将重写了`Object#finalize()`方法的类型标记为`finalizeable`类型。每次创建`finalizeable`对象时，虚拟机会创建一个`FinalizerReference`引用对象，并将其暂存到一个全局链表中。
 
 heap.cc
-```
+```cpp
 void Heap::AddFinalizerReference(Thread* self, ObjPtr<mirror::Object>* object) {
     ScopedObjectAccess soa(self);
     ScopedLocalRef<jobject> arg(self->GetJniEnv(), soa.AddLocalReference<jobject>(*object));
@@ -59,7 +59,7 @@ void Heap::AddFinalizerReference(Thread* self, ObjPtr<mirror::Object>* object) {
 }
 ```
 FinalizerReference.java
-```
+```java
 // 关联的引用队列
 public static final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
 // 全局链表头指针（使用一个双向链表持有 FinalizerReference，否则没有强引用的话引用对象本身直接就被回收了）
