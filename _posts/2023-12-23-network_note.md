@@ -52,7 +52,7 @@ S-->>C:New Session Ticket
 S-->>C:Change Cipher Spec
 S-->>C:Encrypted Handshake Message
 ```
-![0a3a5705383acf82d96c161252c6edc5.png](en-resource://database/512:1)
+![0a3a5705383acf82d96c161252c6edc5.png](../assets/https_handshake.webp)
 
 
 Android NDK Log:error: format string is not a string literal
