@@ -1,6 +1,6 @@
 # FFmpeg
 
-Git地址：[git@github.com:FFmpeg/FFmpeg.git](git@github.com:FFmpeg/FFmpeg.git)
+Git地址：[git@github.com:FFmpeg/FFmpeg.git](https://github.com:FFmpeg/FFmpeg.git)
 
 * 使用`./configure -h`查看所有编译选项。
 * 查看`ffbuild/config.log`排查编译错误。
@@ -35,7 +35,7 @@ Git地址：[git@github.com:FFmpeg/FFmpeg.git](git@github.com:FFmpeg/FFmpeg.git)
 编译脚本：[https://github.com/rookieeeeeee/MediaDemo/blob/master/build_ffmpeg.sh](https://github.com/rookieeeeeee/MediaDemo/blob/master/build_ffmpeg.sh)
 
 # OpenSSL
-Git地址：[git@github.com:openssl/openssl.git](git@github.com:openssl/openssl.git)
+Git地址：[git@github.com:openssl/openssl.git](https://github.com:openssl/openssl.git)
 
 * 需要设置环境变量：`ANDROID_NDK_ROOT`指向NDK目录
 * 需要指定编译目标平台：`android-arm`,`android-arm64`,`android-x86`,`android-x86_64`
