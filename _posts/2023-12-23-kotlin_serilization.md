@@ -35,6 +35,9 @@ buildscript {
 
 ```groovy
 // app build.gradle
+plugins {
+     id 'org.jetbrains.kotlin.plugin.serialization'
+}
 
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
